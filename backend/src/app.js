@@ -12,11 +12,14 @@ dotenv.config();
 const app = express();
 const server = http.createServer(app);
 
-// Middlewares
 app.use(cors());
 app.use(express.json());
 
-// 1) Conectar a MongoDB 
+// Health check route for Render
+app.get('/', (req, res) => {
+  res.status(200).send('Backend is healthy');
+});
+
 connectDB()                                      
   .then(() => console.log('✅ DB conectada (shared/db.js)'))
   .catch(err => {
@@ -24,14 +27,11 @@ connectDB()
     process.exit(1);
   });
 
-// 2) Montar las rutas REST
 app.use('/boards', boardRoutes);
 
-// 3) Inicializar WebSockets *tras* conectar la DB
 initRealtime(server);
 
-// 4) Levantar servidor
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 3000; 
 server.listen(PORT, () => {
   console.log(`🚀 Backend en puerto ${PORT}`);
 });

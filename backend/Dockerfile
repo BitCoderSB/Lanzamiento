@@ -12,8 +12,9 @@ COPY backend/package*.json ./backend/
 # Moverse al directorio de trabajo específico del backend dentro del contenedor
 WORKDIR /app/backend
 
-# Instala dependencias (instalación completa para asegurar todas las dependencias)
-RUN npm install
+# Instala dependencias (solo de producción)
+# Ahora que 'jsonwebtoken' no se usa en runtime, podemos usar --production.
+RUN npm install --production 
 
 # Copia el resto del código de la aplicación
 COPY backend/. . 
