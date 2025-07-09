@@ -1,31 +1,25 @@
-# backend/Dockerfile
-# ...
+# backend/Dockerfile - Versión Final para Producción
+# Ubicación: ./backend/Dockerfile
+
 FROM node:18-alpine
 
-# Directorio de trabajo
+# Directorio de trabajo dentro del contenedor
 WORKDIR /app
 
-# Copia package*.json
+# Copia package*.json desde la carpeta 'backend' en el contexto
 COPY backend/package*.json ./backend/
 
-# Moverse al directorio del backend
+# Moverse al directorio de trabajo específico del backend dentro del contenedor
 WORKDIR /app/backend
 
-# Instala dependencias
-RUN npm install --production
-
-# --- AÑADE ESTAS LÍNEAS DE DEPURACIÓN CRÍTICAS ---
-# Verifica si la carpeta 'jsonwebtoken' existe después de la instalación
-RUN ls -la node_modules/jsonwebtoken/ || echo "ERROR: node_modules/jsonwebtoken/ NO encontrado."
-# Muestra el contenido de node_modules (las primeras líneas)
-RUN ls -la node_modules/ | head -n 20 || echo "ERROR: No se pudo listar node_modules."
-# --- FIN LÍNEAS DE DEPURACIÓN ---
+# Instala dependencias (instalación completa para asegurar todas las dependencias)
+RUN npm install
 
 # Copia el resto del código de la aplicación
 COPY backend/. . 
 
-# Expone el puerto
+# Expone el puerto que usa tu backend
 EXPOSE 10000
 
-# Comando por defecto
+# Comando por defecto al arrancar el contenedor
 CMD ["npm", "start"]
