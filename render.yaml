@@ -1,21 +1,22 @@
 services:
-  - type: web
-    name: backend
+  - name: backend
+    type: web
     env: docker
     plan: free
+    # 👇 Aquí especificas carpeta + Dockerfile
     build:
       context: ./backend
       dockerfilePath: Dockerfile
     envVars:
       - key: MONGODB_URI
-        sync: false 
+        sync: false
       - key: JWT_SECRET
         value: unSecretoMuySegurO123!
       - key: PORT
         value: "10000"
 
-  - type: web
-    name: frontend
+  - name: frontend
+    type: web
     env: docker
     plan: free
     build:
