@@ -5,7 +5,7 @@ import {
   updateBoardElements,
   removeBoardElement
 } from './boardController.js';
-import { verifyJwt } from '../../../shared/authMiddleware.js';
+//import { verifyJwt } from '../../../shared/authMiddleware.js';
 
 const router = Router();
 
