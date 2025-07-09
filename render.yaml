@@ -1,10 +1,9 @@
 services:
   - type: web
     name: backend
-    env: docker 
+    env: docker # Especificar explícitamente que es un runtime Docker
     dockerfilePath: ./backend/Dockerfile
     buildCommand: npm install
-    startCommand: npm start
     healthCheckPath: /
     plan: free
     envVars:
@@ -17,7 +16,7 @@ services:
 
   - type: web
     name: frontend
-    env: docker 
+    env: docker # Especificar explícitamente que es un runtime Docker
     dockerfilePath: ./frontend/Dockerfile
     buildCommand: npm install && npm run build
     plan: free
