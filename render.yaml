@@ -1,33 +1,33 @@
-# render.yaml - Pega este contenido completo en tu archivo.
-
 services:
   - type: web
-    name: backend
-    env: node
-    dockerfilePath: ./backend/Dockerfile
-    buildCommand: npm install
-    startCommand: npm start
-    healthCheckPath: /
-    plan: free
-    # Eliminado: 'ports:' Render maneja esto automáticamente con dockerfilePath.
+    name: backend # Nombre del servicio de backend en Render
+    # No se especifica 'env' aquí, ya que se usa dockerfilePath.
+    dockerfilePath: ./backend/Dockerfile # Ruta a tu Dockerfile para el backend
+    buildCommand: npm install # Render ejecutará esto antes de la construcción del Dockerfile
+    startCommand: npm start # Comando para iniciar el backend (desde package.json)
+    healthCheckPath: / # Ruta para verificar si el backend está activo
+    plan: free # Plan gratuito
+    ports: # Puerto interno que tu backend expone en el contenedor
+      - 3000 
     envVars:
       - key: MONGODB_URI # Variable de entorno para MongoDB
-        sync: false # Su valor se definirá en la interfaz de Render.
+        sync: false # Su valor se definirá en la interfaz de Render, NO aquí.
       - key: JWT_SECRET
-        value: unSecretoMuySegurO123! # <<< REEMPLAZA CON TU CLAVE REAL
-      - key: PORT # Tu backend DEBE escuchar en este puerto
-        value: "10000" # Render inyectará 10000 por defecto. Asegúrate que tu app.js lo usa.
+        value: unSecretoMuySegurO123! # <<< ¡IMPORTANTE! REEMPLAZA CON UNA CLAVE SEGURA Y REAL
+      - key: PORT # Tu backend DEBE escuchar en este puerto (app.js ya lo maneja)
+        value: "3000" # Render lo inyectará con este valor en el contenedor.
 
   - type: web
-    name: frontend
-    env: static # Render servirá los archivos estáticos generados
-    dockerfilePath: ./frontend/Dockerfile
-    buildCommand: npm install && npm run build
-    staticPublishPath: ./frontend/dist # Carpeta donde Vite/React pone los archivos construidos
-    plan: free
+    name: frontend # Nombre del servicio de frontend en Render
+    # No se especifica 'env' aquí, ya que se usa dockerfilePath.
+    dockerfilePath: ./frontend/Dockerfile # Ruta a tu Dockerfile para el frontend
+    buildCommand: npm install && npm run build # Comando para construir la app React
+    # staticPublishPath no es necesario cuando se usa dockerfilePath, ya que el Dockerfile servirá los archivos.
+    plan: free # Plan gratuito
+    ports: # Puerto interno que tu frontend expone en el contenedor (con 'serve' o Nginx)
+      - 3000 # Debe coincidir con el puerto EXPOSE y CMD de tu frontend/Dockerfile
     envVars:
       # URL del backend para que el frontend la conozca.
-      # 'backend' aquí se refiere al nombre de tu otro servicio en Render.
-      # Render usa su puerto interno 10000, pero la comunicación interna es por nombre de servicio.
+      # Render permite la comunicación interna entre servicios usando sus nombres de servicio y puertos internos.
       - key: VITE_BACKEND_URL
-        value: http://backend:10000 # Actualizado a 10000 para coincidir con el puerto de Render
+        value: http://backend:3000 # 'backend' es el nombre del servicio de tu backend en Render

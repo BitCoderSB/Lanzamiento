@@ -1,20 +1,32 @@
-# frontend/Dockerfile
-FROM node:18-alpine
+FROM node:18-alpine AS build
 
-# Directorio de trabajo
 WORKDIR /app
 
-# Copia las definiciones de dependencias
-COPY package*.json ./
+# Copia los archivos de configuración de dependencias
+COPY package.json package-lock.json ./
 
-# Instala dependencias
+# Instala las dependencias
 RUN npm install
 
-# Copia todo el código de la app
+# Copia el código fuente del frontend
 COPY . .
 
-# Exponer el puerto de Vite
-EXPOSE 5173
+# Construye la aplicación React para producción
+RUN npm run build # Esto genera los archivos estáticos en la carpeta 'dist'
 
-# Arrancar el dev server de Vite
-CMD ["npm", "run", "dev"]
+
+# Etapa 2: Servir la aplicación construida con un servidor web ligero ('serve')
+FROM node:18-alpine
+
+WORKDIR /app
+
+# Instala 'serve' globalmente para servir los archivos estáticos
+RUN npm install -g serve
+
+# Copia los archivos construidos de la etapa 'build' al directorio de trabajo final
+COPY --from=build /app/dist ./dist
+
+# Expone el puerto donde 'serve' escuchará
+EXPOSE 3000 
+# Comando para iniciar el servidor 'serve'
+CMD ["serve", "-s", "dist", "-l", "3000"] 
