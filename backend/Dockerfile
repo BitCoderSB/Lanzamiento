@@ -8,8 +8,7 @@ WORKDIR /app
 COPY package*.json ./
 
 # Instala dependencias
-RUN npm install --production # Instala solo dependencias de producción para reducir tamaño
-
+RUN npm install --production
 # Copia el resto del código de la aplicación
 COPY . .
 

@@ -1,25 +1,26 @@
 services:
   - type: web
     name: backend
-    env: docker # Especificar explícitamente que es un runtime Docker
-    dockerfilePath: ./backend/Dockerfile
-    buildCommand: npm install
-    healthCheckPath: /
+    env: docker
     plan: free
+    build:
+      context: ./backend
+      dockerfilePath: Dockerfile
     envVars:
       - key: MONGODB_URI
         sync: false 
       - key: JWT_SECRET
-        value: unSecretoMuySegurO123! # <<< ¡IMPORTANTE! REEMPLAZA CON UNA CLAVE SEGURA Y REAL
+        value: unSecretoMuySegurO123!
       - key: PORT
-        value: "10000" 
+        value: "10000"
 
   - type: web
     name: frontend
-    env: docker # Especificar explícitamente que es un runtime Docker
-    dockerfilePath: ./frontend/Dockerfile
-    buildCommand: npm install && npm run build
+    env: docker
     plan: free
+    build:
+      context: ./frontend
+      dockerfilePath: Dockerfile
     envVars:
       - key: VITE_BACKEND_URL
         value: http://backend:10000

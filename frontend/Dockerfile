@@ -5,13 +5,6 @@ FROM node:18-alpine AS build
 
 WORKDIR /app
 
-# --- CAMBIOS DE DEPURACIÓN Y COPIA ---
-
-# AÑADE ESTA LÍNEA DE DEPURACIÓN CRÍTICA (forzada a no usar caché)
-# Esto nos mostrará el contenido REAL del directorio /app en el momento de la construcción.
-RUN ls -la /app && echo "Depuración de caché en $(date +%s)"
-# Asegúrate de que package.json y package-lock.json aparecen en la salida de este comando.
-
 # Copia los archivos de configuración de dependencias
 COPY package.json ./
 # Copiamos package-lock.json con una ruta más explícita (desde la raíz del contexto de construcción)
@@ -19,6 +12,7 @@ COPY package.json ./
 COPY package-lock.json ./ 
 
 
+RUN ls -la /app && echo "Depuración de caché en $(date +%s)"
 # --- FIN CAMBIOS ---
 
 # Instala las dependencias
