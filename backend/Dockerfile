@@ -1,4 +1,6 @@
-#backend/Dockerfile
+# backend/Dockerfile - Versión Final para Producción
+# Ubicación: ./backend/Dockerfile
+
 FROM node:18-alpine
 
 # Directorio de trabajo dentro del contenedor
@@ -8,7 +10,8 @@ WORKDIR /app
 COPY package*.json ./
 
 # Instala dependencias
-RUN npm install --production
+RUN npm install --production # Instala solo dependencias de producción para reducir tamaño
+
 # Copia el resto del código de la aplicación
 COPY . .
 

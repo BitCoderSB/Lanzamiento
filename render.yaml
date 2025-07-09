@@ -1,27 +1,33 @@
-services:
-  - name: backend
-    type: web
-    env: docker
-    plan: free
-    # 👇 Aquí especificas carpeta + Dockerfile
-    build:
-      context: ./backend
-      dockerfilePath: Dockerfile
-    envVars:
-      - key: MONGODB_URI
-        sync: false
-      - key: JWT_SECRET
-        value: unSecretoMuySegurO123!
-      - key: PORT
-        value: "10000"
+# render.yaml - Versión Final para Despliegue con Dockerfiles Custom
+# Ubicación: En la raíz de tu proyecto (al mismo nivel que 'backend/' y 'frontend/')
 
-  - name: frontend
-    type: web
-    env: docker
-    plan: free
-    build:
-      context: .
-      dockerfilePath: frontend/Dockerfile
+services:
+  - type: web
+    name: backend # Nombre del servicio de backend en Render
+    env: docker # Especificar explícitamente que es un runtime Docker
+    dockerfilePath: ./backend/Dockerfile # Ruta a tu Dockerfile para el backend
+    buildCommand: npm install # Render ejecutará esto antes de la construcción del Dockerfile
+    # startCommand: npm start # ELIMINADO: El comando de inicio está en el Dockerfile.
+    healthCheckPath: / # Ruta para verificar si el backend está activo
+    plan: free # Plan gratuito
+    # ELIMINADO 'ports:' Render leerá el puerto directamente del EXPOSE en el Dockerfile.
     envVars:
+      - key: MONGODB_URI # Variable de entorno para MongoDB
+        sync: false # Su valor se definirá en la interfaz de Render, NO aquí.
+      - key: JWT_SECRET
+        value: unSecretoMuySegurO123! # <<< ¡IMPORTANTE! REEMPLAZA CON UNA CLAVE SEGURA Y REAL
+      - key: PORT # Tu backend DEBE escuchar en este puerto (app.js ya lo maneja)
+        value: "10000" # Render lo inyectará con este valor en el contenedor.
+
+  - type: web
+    name: frontend # Nombre del servicio de frontend en Render
+    env: docker # Especificar explícitamente que es un runtime Docker
+    dockerfilePath: ./frontend/Dockerfile # Ruta a tu Dockerfile para el frontend
+    buildCommand: npm install && npm run build # Comando para construir la app React
+    plan: free # Plan gratuito
+    # ELIMINADO 'ports:' Render leerá el puerto directamente del EXPOSE en el Dockerfile.
+    envVars:
+      # URL del backend para que el frontend la conozca.
+      # Render permite la comunicación interna entre servicios usando sus nombres de servicio y puertos internos.
       - key: VITE_BACKEND_URL
-        value: http://backend:10000
+        value: http://backend:10000 # 'backend' es el nombre del servicio de tu backend en Render

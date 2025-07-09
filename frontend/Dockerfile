@@ -1,31 +1,22 @@
-# frontend/Dockerfile
+# frontend/Dockerfile - Versión Final para Producción (Solución de package-lock.json)
+# Ubicación: ./frontend/Dockerfile
 
 # Etapa 1: Construir la aplicación React
 FROM node:18-alpine AS build
 
 WORKDIR /app
 
-#Comando Pwd
-RUN pwd
-
-# Copia los archivos de configuración de dependencias
+# Copia SOLO package.json. package-lock.json no se copia explícitamente aquí.
 COPY package.json ./
-# Copiamos package-lock.json con una ruta más explícita (desde la raíz del contexto de construcción)
-# Esto a veces ayuda a BuildKit a encontrar el archivo si hay ambigüedad.
-COPY package-lock.json ./ 
 
-
-
-# --- FIN CAMBIOS ---
-
-# Instala las dependencias
+# Instala las dependencias. npm las resolverá basándose en package.json.
 RUN npm install
 
 # Copia el código fuente del frontend
 COPY . .
 
 # Construye la aplicación React para producción
-RUN npm run build
+RUN npm run build # Esto genera los archivos estáticos en la carpeta 'dist'
 
 
 # Etapa 2: Servir la aplicación construida con un servidor web ligero ('serve')
