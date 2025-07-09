@@ -1,17 +1,24 @@
+// backend/src/shared/authMiddleware.js
 import dotenv from 'dotenv';
-// Importa createRequire desde el módulo 'module'
-import { createRequire } from 'module';
 
-// Crea una función 'require' que puede importar módulos CommonJS en este contexto ESM
-const require = createRequire(import.meta.url);
-// Ahora usa la función 'require' para importar jsonwebtoken
-const jwt = require('jsonwebtoken'); // <-- ¡CAMBIO CLAVE AQUÍ!
-
-dotenv.config();
 const JWT_SECRET = process.env.JWT_SECRET;
+
+// Usar import() dinámico para jsonwebtoken
+let jwt;
+(async () => {
+  jwt = await import('jsonwebtoken');
+  // Si jwt no es el objeto esperado, podría ser jwt.default
+  // Depende de cómo jsonwebtoken exporte.
+  // Podrías necesitar: jwt = (await import('jsonwebtoken')).default;
+})();
 
 
 export function verifyJwt(req, res, next) {
+  // Asegúrate de que jwt esté definido antes de usarlo
+  if (!jwt) {
+    return res.status(500).json({ error: 'JWT module not loaded yet' });
+  }
+
   const authHeader = req.headers.authorization || '';
   const [scheme, token] = authHeader.split(' ');
 
@@ -21,7 +28,6 @@ export function verifyJwt(req, res, next) {
 
   try {
     const payload = jwt.verify(token, JWT_SECRET);
-    // payload debe contener { userId, username, iat, exp }
     req.userId   = payload.userId;
     req.username = payload.username;
     next();
