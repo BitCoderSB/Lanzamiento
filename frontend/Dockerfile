@@ -16,7 +16,7 @@ RUN ls -la /app && echo "Depuración de caché en $(date +%s)"
 COPY package.json ./
 # Copiamos package-lock.json con una ruta más explícita (desde la raíz del contexto de construcción)
 # Esto a veces ayuda a BuildKit a encontrar el archivo si hay ambigüedad.
-COPY ./package-lock.json ./ 
+COPY package-lock.json ./ 
 
 
 # --- FIN CAMBIOS ---
