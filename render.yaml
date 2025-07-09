@@ -9,15 +9,14 @@ services:
     startCommand: npm start
     healthCheckPath: /
     plan: free
-    ports:
-      - 3000 # Puerto que tu backend Node.js expone internamente
+    # Eliminado: 'ports:' Render maneja esto automáticamente con dockerfilePath.
     envVars:
       - key: MONGODB_URI # Variable de entorno para MongoDB
         sync: false # Su valor se definirá en la interfaz de Render.
       - key: JWT_SECRET
         value: unSecretoMuySegurO123! # <<< REEMPLAZA CON TU CLAVE REAL
-      - key: PORT
-        value: "3000"
+      - key: PORT # Tu backend DEBE escuchar en este puerto
+        value: "10000" # Render inyectará 10000 por defecto. Asegúrate que tu app.js lo usa.
 
   - type: web
     name: frontend
@@ -29,5 +28,6 @@ services:
     envVars:
       # URL del backend para que el frontend la conozca.
       # 'backend' aquí se refiere al nombre de tu otro servicio en Render.
+      # Render usa su puerto interno 10000, pero la comunicación interna es por nombre de servicio.
       - key: VITE_BACKEND_URL
-        value: http://backend:3000
+        value: http://backend:10000 # Actualizado a 10000 para coincidir con el puerto de Render
