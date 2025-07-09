@@ -5,6 +5,9 @@ FROM node:18-alpine AS build
 
 WORKDIR /app
 
+#Comando Pwd
+RUN pwd
+
 # Copia los archivos de configuración de dependencias
 COPY package.json ./
 # Copiamos package-lock.json con una ruta más explícita (desde la raíz del contexto de construcción)
@@ -12,7 +15,7 @@ COPY package.json ./
 COPY package-lock.json ./ 
 
 
-RUN pwd
+
 # --- FIN CAMBIOS ---
 
 # Instala las dependencias
