@@ -1,28 +1,31 @@
-# backend/Dockerfile - Versión Final Correcta
-# Ubicación: ./backend/Dockerfile
-
+# backend/Dockerfile
+# ...
 FROM node:18-alpine
 
-# El WORKDIR inicial ahora es la raíz del contenedor (/app)
-# y se corresponde con la raíz del repositorio (PizarraDigital/)
+# Directorio de trabajo
 WORKDIR /app
 
-# Copia package.json y package-lock.json desde la carpeta 'backend' en el contexto
-# (que es la raíz del repo) a una ubicación temporal en /app/backend.
-# Esto asegura que npm install tenga los archivos correctos.
+# Copia package*.json
 COPY backend/package*.json ./backend/
 
-# Moverse al directorio de trabajo específico del backend dentro del contenedor
-# Aquí es donde se ejecutarán 'npm install' y se copiará el resto del código.
-WORKDIR /app/backend 
+# Moverse al directorio del backend
+WORKDIR /app/backend
+
 # Instala dependencias
-RUN npm install --production 
-# Copia el resto del código de la aplicación (src, config, etc.)
-# Desde la carpeta 'backend' del contexto (raíz del repo) al WORKDIR actual (/app/backend)
+RUN npm install --production
+
+# --- AÑADE ESTAS LÍNEAS DE DEPURACIÓN CRÍTICAS ---
+# Verifica si la carpeta 'jsonwebtoken' existe después de la instalación
+RUN ls -la node_modules/jsonwebtoken/ || echo "ERROR: node_modules/jsonwebtoken/ NO encontrado."
+# Muestra el contenido de node_modules (las primeras líneas)
+RUN ls -la node_modules/ | head -n 20 || echo "ERROR: No se pudo listar node_modules."
+# --- FIN LÍNEAS DE DEPURACIÓN ---
+
+# Copia el resto del código de la aplicación
 COPY backend/. . 
 
-# Expone el puerto que usa tu backend
+# Expone el puerto
 EXPOSE 10000
 
-# Comando por defecto al arrancar el contenedor
+# Comando por defecto
 CMD ["npm", "start"]
