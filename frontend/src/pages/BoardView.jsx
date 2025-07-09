@@ -1,3 +1,4 @@
+// frontend/src/pages/BoardView.jsx
 import React, { useState, useEffect, useRef, useCallback } from 'react'
 import { useParams } from 'react-router-dom'
 import { socket } from '../services/socket'
@@ -11,19 +12,27 @@ import { useHandPointer } from '../hooks/useHandPointer'
 import { v4 as uuidv4 } from 'uuid';
 
 export default function BoardView() {
-  const { boardId } = useParams()
+  const { boardId: rawBoardId } = useParams() // Obtenemos el ID "crudo" del router
 
-  // --- AÑADE ESTE LOG ---
+  // --- SANITIZAR EL boardId INMEDIATAMENTE ---
+  // 1. Eliminar cualquier sufijo ':número' al final de la cadena.
+  // 2. Luego, eliminar cualquier carácter que no sea alfanumérico, guiones o guiones bajos.
+  const sanitizedBoardId = rawBoardId ? rawBoardId.replace(/:\d+$/, '').replace(/[^a-zA-Z0-9_-]/g, '') : '';
+  // La regex /:\d+$/ busca un ":" seguido de uno o más dígitos al final de la cadena.
+  // Esto debería eliminar específicamente el ":1" o ":2", etc.
+
+  // Logs para depuración:
   useEffect(() => {
-    console.log("[BoardView] boardId recibido de useParams:", boardId);
-  }, [boardId]);
-  // --- FIN LOG ---
+    console.log("[BoardView] Raw boardId de useParams:", rawBoardId);
+    console.log("[BoardView] Sanitized boardId para useBoard:", sanitizedBoardId);
+  }, [rawBoardId, sanitizedBoardId]);
+  // --- FIN SANITIZACIÓN ---
 
   const {
     elements, textBoxes,
     addElement, updateElement, removeElement,
     addTextBox, updateTextBox
-  } = useBoard(boardId)
+  } = useBoard(sanitizedBoardId) // <--- Pasamos el ID sanitizado al hook useBoard
 
   const [userName, setUserName] = useState('')
   useEffect(() => {
@@ -31,7 +40,7 @@ export default function BoardView() {
     else socket.on('connect', () => setUserName(socket.id))
   }, [])
 
-  const { messages, sendMessage } = useChat(boardId, userName)
+  const { messages, sendMessage } = useChat(sanitizedBoardId, userName) // <--- Usamos el ID sanitizado aquí también
   const [tool, setTool]         = useState('select')
   const [color, setColor]       = useState('#3b82f6')
   const [chatOpen, setChatOpen] = useState(false)
@@ -99,11 +108,8 @@ export default function BoardView() {
           onMove={updateElement}
           onRemove={removeElement}
           onSelectText={pos => {
-            // Generar el ID una vez para el textbox y el elemento eventual
             const tempTextId = uuidv4(); 
             
-            // Solo se crea el overlay (TextBox) para que el usuario pueda escribir.
-            // El elemento de texto en el Canvas/DB se añade cuando el usuario escribe algo.
             addTextBox({
               id: tempTextId,
               type: 'text',
@@ -129,12 +135,10 @@ export default function BoardView() {
             onChange={props => {
               updateTextBox(box.id, props);
 
-              // Eliminar si el texto está vacío
               if (props.text.trim() === '') {
                   removeElement(box.id);
-                  updateTextBox(box.id, { deleted: true }); // Para gestionar el overlay
+                  updateTextBox(box.id, { deleted: true });
               } else {
-                  // Añadir o actualizar el elemento en el Canvas/DB
                   const existingEl = elements.find(el => el.id === box.id);
                   if (!existingEl) {
                       addElement({
