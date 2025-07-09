@@ -12,7 +12,7 @@ COPY package.json ./
 COPY package-lock.json ./ 
 
 
-RUN ls -la /app && echo "Depuración de caché en $(date +%s)"
+RUN pwd
 # --- FIN CAMBIOS ---
 
 # Instala las dependencias
