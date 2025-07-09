@@ -20,8 +20,8 @@ services:
     env: docker
     plan: free
     build:
-      context: ./frontend
-      dockerfilePath: Dockerfile
+      context: .
+      dockerfilePath: frontend/Dockerfile
     envVars:
       - key: VITE_BACKEND_URL
         value: http://backend:10000
