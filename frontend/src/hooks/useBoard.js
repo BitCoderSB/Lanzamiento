@@ -51,7 +51,7 @@ export function useBoard(boardIdParam) { // Renombramos 'boardId' a 'boardIdPara
     // LOG DEPURACIÓN: Ver la URL que se construye para el socket
     // socket.js ya usa la variable global URL que toma de import.meta.env.VITE_BACKEND_URL
     // si no se le pasa una URL explícita a io().
-    const socketBaseUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000';
+    const socketBaseUrl = import.meta.env.VITE_BACKEND_URL || 'https://backend-8dew.onrender.com/';
     console.log("[useBoard] URL base para socket:", socketBaseUrl);
 
     socket.auth = { token };
