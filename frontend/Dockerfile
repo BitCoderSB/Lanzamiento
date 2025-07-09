@@ -11,29 +11,16 @@ COPY package.json ./
 # Instala las dependencias
 RUN npm install
 
-# Copia el código fuente del frontend
+# Copia el código fuente del frontend (esto incluye index.html)
 COPY . .
 
-# --- CAMBIO CRÍTICO AQUÍ ---
-# Antes: RUN npm run build # Esto genera los archivos estáticos en la carpeta 'dist'
-# Ahora: Ejecutar 'vite build' directamente usando npx para evitar el "Missing script"
-RUN npx vite build # <--- ¡CAMBIO!
-# --- FIN CAMBIO ---
+# --- AÑADE ESTA LÍNEA DE DEPURACIÓN CRÍTICA ---
+# Después de copiar todo, lista el contenido de /app para ver si index.html está ahí.
+# Esto nos dirá si el archivo llegó correctamente al contenedor.
+RUN ls -la /app && echo "Contenido de /app antes del build en $(date +%s)"
+# --- FIN LÍNEAS DE DEPURACIÓN ---
 
+# Ejecutar 'vite build' directamente usando npx
+RUN npx vite build
 
-# Etapa 2: Servir la aplicación construida con un servidor web ligero ('serve')
-FROM node:18-alpine
-
-WORKDIR /app
-
-# Instala 'serve' globalmente para servir los archivos estáticos
-RUN npm install -g serve
-
-# Copia los archivos construidos de la etapa 'build' al directorio de trabajo final
-COPY --from=build /app/dist ./dist
-
-# Expone el puerto donde 'serve' escuchará
-EXPOSE 3000
-
-# Comando para iniciar el servidor 'serve'
-CMD ["serve", "-s", "dist", "-l", "3000"]
+# ... (Resto del Dockerfile, Etapa 2) ...
