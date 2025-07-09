@@ -1,31 +1,35 @@
+// frontend/src/hooks/useBoard.js
 import { useState, useEffect, useCallback } from 'react';
 import { socket } from '../services/socket';
 
 
-export function useBoard(boardIdParam) { // Renombramos 'boardId' a 'boardIdParam' para mayor claridad
+export function useBoard(boardIdParam) {
   const [elements, setElements]   = useState([]);
   const [textBoxes, setTextBoxes] = useState([]);
 
-  // Base URL del backend
-  // IMPORTANTE: El fallback DEBE ser localhost:3000 para desarrollo local.
-  // Vite reemplaza 'import.meta.env.VITE_BACKEND_URL' con la URL de Render en producción.
-  const API   = import.meta.env.VITE_BACKEND_URL || 'https://backend-8dew.onrender.com/'; // <-- CORREGIDO AQUÍ
+  const API   = 'https://backend-8dew.onrender.com/';
   const token = localStorage.getItem('token') || '';
   const authHeaders = {
     'Content-Type': 'application/json',
     ...(token && { Authorization: `Bearer ${token}` })
   };
 
-  // LOG DEPURACIÓN: Ver el boardId recibido de useParams
+  // --- SANITIZAR boardIdParam AQUÍ ---
+  // Eliminar cualquier carácter que no sea alfanumérico o guiones/guiones bajos
+  // y cualquier sufijo como ":1"
+  const cleanBoardId = boardIdParam ? boardIdParam.replace(/[^a-zA-Z0-9_-]/g, '').split(':')[0] : '';
+  // LOG DEPURACIÓN: Ver el boardId después de la limpieza
   useEffect(() => {
-    console.log("[useBoard] boardId recibido como parámetro:", boardIdParam);
-  }, [boardIdParam]);
+    console.log("[useBoard] boardId recibido como parámetro (limpio):", cleanBoardId);
+  }, [cleanBoardId]);
+  // --- FIN SANITIZACIÓN ---
+
 
   // 1) GET inicial de la pizarra (crea si no existe)
   useEffect(() => {
-    // LOG DEPURACIÓN: Ver la URL exacta que se construye para el fetch
-    const fetchUrl = `${API}/boards/${boardIdParam}`;
-    console.log("[useBoard] URL construida para fetch:", fetchUrl);
+    // Usamos cleanBoardId en lugar de boardIdParam
+    const fetchUrl = `${API}/boards/${cleanBoardId}`;
+    console.log("[useBoard] URL construida para fetch (con ID limpio):", fetchUrl);
 
     fetch(fetchUrl, {
       method: 'GET',
@@ -44,19 +48,16 @@ export function useBoard(boardIdParam) { // Renombramos 'boardId' a 'boardIdPara
       .catch(err => {
         console.error('useBoard GET (Error en fetch):', err);
       });
-  }, [API, boardIdParam, token]); // Asegúrate de usar boardIdParam en las dependencias
+  }, [API, cleanBoardId, token]); // Usamos cleanBoardId en las dependencias
 
   // 2) WebSocket: unirse a sala y escuchar eventos
   useEffect(() => {
-    // LOG DEPURACIÓN: Ver la URL que se construye para el socket
-    // socket.js ya usa la variable global URL que toma de import.meta.env.VITE_BACKEND_URL
-    // si no se le pasa una URL explícita a io().
-    const socketBaseUrl = import.meta.env.VITE_BACKEND_URL || 'https://backend-8dew.onrender.com/';
+    const socketBaseUrl = 'https://backend-8dew.onrender.com/';
     console.log("[useBoard] URL base para socket:", socketBaseUrl);
 
     socket.auth = { token };
     socket.connect();
-    socket.emit('joinBoard', boardIdParam); // Usamos boardIdParam aquí
+    socket.emit('joinBoard', cleanBoardId); // Usamos cleanBoardId aquí
 
     socket.on('board:init', initial => {
       setElements(initial);
@@ -64,7 +65,6 @@ export function useBoard(boardIdParam) { // Renombramos 'boardId' a 'boardIdPara
 
     socket.on('board:add', el => {
       setElements(prev => {
-        // Manejo de ID duplicado: reemplazar si ya existe en lugar de añadir
         if (prev.some(existingEl => existingEl.id === el.id)) {
             return prev.map(e => (e.id === el.id ? e : e)); 
         }
@@ -74,7 +74,6 @@ export function useBoard(boardIdParam) { // Renombramos 'boardId' a 'boardIdPara
 
     socket.on('board:update', upd => {
       setElements(prev => {
-        // Asegurarse de que el elemento exista antes de actualizar
         if (!prev.some(existingEl => existingEl.id === upd.elementId)) {
             // Elemento no encontrado para actualizar
         }
@@ -93,21 +92,20 @@ export function useBoard(boardIdParam) { // Renombramos 'boardId' a 'boardIdPara
       socket.off('board:remove');
       socket.disconnect();
     };
-  }, [boardIdParam, token, API]); // API también es una dependencia aquí, por consistencia.
+  }, [cleanBoardId, token, API]); // Usamos cleanBoardId en las dependencias
 
   // 3) Función que persiste todo el estado al backend
   const persist = useCallback(newElements => {
-    fetch(`${API}/boards/${boardIdParam}/elements`, { // Usamos boardIdParam aquí
+    fetch(`${API}/boards/${cleanBoardId}/elements`, { // Usamos cleanBoardId aquí
       method: 'PUT',
       headers: authHeaders,
       body: JSON.stringify({ elements: newElements })
     }).catch(err => console.error('useBoard PUT:', err));
-  }, [API, boardIdParam, token]);
+  }, [API, cleanBoardId, token]);
 
   // 4a) Añadir elemento: local + WS + BD
   const addElement = useCallback(el => {
     setElements(prev => {
-      // Manejo de ID duplicado: reemplazar si ya existe en lugar de añadir
       if (prev.some(existingEl => existingEl.id === el.id)) {
         return prev.map(e => (e.id === el.id ? e : e)); 
       }
@@ -115,8 +113,8 @@ export function useBoard(boardIdParam) { // Renombramos 'boardId' a 'boardIdPara
       persist(next);
       return next;
     });
-    socket.emit('board:add', { boardId: boardIdParam, element: el }); // Usamos boardIdParam aquí
-  }, [boardIdParam, persist]);
+    socket.emit('board:add', { boardId: cleanBoardId, element: el }); // Usamos cleanBoardId aquí
+  }, [cleanBoardId, persist]);
 
   // 4b) Actualizar elemento
   const updateElement = useCallback(update => {
@@ -128,11 +126,11 @@ export function useBoard(boardIdParam) { // Renombramos 'boardId' a 'boardIdPara
       return next;
     });
     socket.emit('board:update', {
-      boardId: boardIdParam, // Usamos boardIdParam aquí
+      boardId: cleanBoardId, // Usamos cleanBoardId aquí
       elementId: update.id,
       ...update
     });
-  }, [boardIdParam, persist]);
+  }, [cleanBoardId, persist]);
 
   // 4c) Eliminar elemento
   const removeElement = useCallback(id => {
@@ -141,8 +139,8 @@ export function useBoard(boardIdParam) { // Renombramos 'boardId' a 'boardIdPara
       persist(next);
       return next;
     });
-    socket.emit('board:remove', { boardId: boardIdParam, elementId: id }); // Usamos boardIdParam aquí
-  }, [boardIdParam, persist]);
+    socket.emit('board:remove', { boardId: cleanBoardId, elementId: id }); // Usamos cleanBoardId aquí
+  }, [cleanBoardId, persist]);
 
   // 5) TextBoxes (solo en cliente)
   const addTextBox = useCallback(box => {
