@@ -1,15 +1,13 @@
 # frontend/Dockerfile
-# Ubicación: ./frontend/Dockerfile
 
 # Etapa 1: Construir la aplicación React
 FROM node:18-alpine AS build
 
 WORKDIR /app
 
-# Declarar el argumento de construcción para la URL del backend
-ARG VITE_BACKEND_URL
-# Establecer la variable de entorno dentro del contenedor para que Vite la vea
-ENV VITE_BACKEND_URL=$VITE_BACKEND_URL
+# Eliminamos ARG y ENV de aquí, ya no son necesarios
+# ARG VITE_BACKEND_URL
+# ENV VITE_BACKEND_URL=$VITE_BACKEND_URL
 
 # Copia package.json desde la carpeta 'frontend'
 COPY frontend/package.json ./frontend/
@@ -23,8 +21,11 @@ RUN npm install
 # Copia el resto del código del frontend
 COPY frontend/. .
 
-# Ejecutar 'vite build' para producir los archivos estáticos
-RUN npx vite build
+# --- CAMBIO CRÍTICO AQUÍ ---
+# Pasamos VITE_BACKEND_URL directamente como variable de entorno al comando npx vite build
+# Render inyecta VITE_BACKEND_URL al entorno del contenedor, y este comando la usará.
+RUN VITE_BACKEND_URL=${VITE_BACKEND_URL} npx vite build
+# --- FIN CAMBIO ---
 
 
 # Etapa 2: Servir la aplicación construida
