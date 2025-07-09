@@ -23,3 +23,5 @@ services:
     envVars:
       - key: VITE_BACKEND_URL
         value: https://backend-8dew.onrender.com/
+    buildArgs: # Argumentos de construcción para el Dockerfile
+      - VITE_BACKEND_URL # Pasa la variable a la etapa de construcción del Dockerfile
