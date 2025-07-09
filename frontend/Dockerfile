@@ -1,22 +1,24 @@
-# frontend/Dockerfile - Versión Final para Producción (Solución de package-lock.json)
-# Ubicación: ./frontend/Dockerfile
+# frontend/Dockerfile
 
 # Etapa 1: Construir la aplicación React
 FROM node:18-alpine AS build
 
 WORKDIR /app
 
-# Copia SOLO package.json. package-lock.json no se copia explícitamente aquí.
+# Copia solo package.json
 COPY package.json ./
 
-# Instala las dependencias. npm las resolverá basándose en package.json.
+# Instala las dependencias
 RUN npm install
 
 # Copia el código fuente del frontend
 COPY . .
 
-# Construye la aplicación React para producción
-RUN npm run build # Esto genera los archivos estáticos en la carpeta 'dist'
+# --- CAMBIO CRÍTICO AQUÍ ---
+# Antes: RUN npm run build # Esto genera los archivos estáticos en la carpeta 'dist'
+# Ahora: Ejecutar 'vite build' directamente usando npx para evitar el "Missing script"
+RUN npx vite build # <--- ¡CAMBIO!
+# --- FIN CAMBIO ---
 
 
 # Etapa 2: Servir la aplicación construida con un servidor web ligero ('serve')
