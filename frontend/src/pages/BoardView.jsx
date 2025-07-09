@@ -12,6 +12,13 @@ import { v4 as uuidv4 } from 'uuid';
 
 export default function BoardView() {
   const { boardId } = useParams()
+
+  // --- AÑADE ESTE LOG ---
+  useEffect(() => {
+    console.log("[BoardView] boardId recibido de useParams:", boardId);
+  }, [boardId]);
+  // --- FIN LOG ---
+
   const {
     elements, textBoxes,
     addElement, updateElement, removeElement,
