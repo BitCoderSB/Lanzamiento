@@ -4,8 +4,8 @@ FROM node:18-alpine AS build
 WORKDIR /app
 
 # Copia los archivos de configuración de dependencias
-COPY package.json package-lock.json ./
-
+COPY package.json ./
+COPY package-lock.json ./ 
 # Instala las dependencias
 RUN npm install
 
