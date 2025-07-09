@@ -1,5 +1,11 @@
-import jwt from 'jsonwebtoken';
 import dotenv from 'dotenv';
+// Importa createRequire desde el módulo 'module'
+import { createRequire } from 'module';
+
+// Crea una función 'require' que puede importar módulos CommonJS en este contexto ESM
+const require = createRequire(import.meta.url);
+// Ahora usa la función 'require' para importar jsonwebtoken
+const jwt = require('jsonwebtoken'); // <-- ¡CAMBIO CLAVE AQUÍ!
 
 dotenv.config();
 const JWT_SECRET = process.env.JWT_SECRET;
