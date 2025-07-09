@@ -1,3 +1,4 @@
+#backend/Dockerfile
 FROM node:18-alpine
 
 # Directorio de trabajo dentro del contenedor
@@ -14,7 +15,7 @@ COPY . .
 
 # Expone el puerto que usa tu backend
 # Render mapeará su tráfico externo a este puerto interno
-EXPOSE 3000
+EXPOSE 10000
 
 # Comando por defecto al arrancar el contenedor
 # Usa 'npm start' para producción (asumiendo que tu package.json lo tiene configurado para 'node src/app.js')
