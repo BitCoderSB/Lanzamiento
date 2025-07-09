@@ -1,0 +1,42 @@
+# render.yaml - Pega este contenido completo en tu nuevo archivo.
+
+services:
+  - type: web
+    name: backend # Nombre del servicio de backend en Render
+    env: node # Entorno para Node.js
+    dockerfilePath: ./backend/Dockerfile # Ruta a tu Dockerfile para el backend
+    buildCommand: npm install # Comando para instalar dependencias antes de construir la imagen
+    startCommand: npm start # Comando para iniciar el backend (asegúrate que "npm start" exista en backend/package.json)
+    healthCheckPath: / # Ruta para el health check de tu API (ej. la raíz)
+    plan: free # Plan gratuito
+    ports:
+      - 3000 # El puerto que tu backend Node.js expone internamente
+    envVars:
+      # Variable de entorno para MongoDB: La definirás en la interfaz de Render.
+      # NO PONGAS AQUÍ TU CADENA DE CONEXIÓN REAL. Render te la pedirá en el siguiente paso.
+      - key: MONGODB_URI 
+        sync: false # Render no la sincroniza por defecto con Git, la gestionarás en el dashboard.
+        # Puedes usar tu cadena de conexión actual de Railway o una nueva si usas un servicio de DB de Render.
+
+      # Tu clave JWT. Aquí puedes poner el valor de tu .env o generar uno más seguro para producción.
+      - key: JWT_SECRET 
+        value: unSecretoMuySegurO123! # <<< REEMPLAZA CON TU CLAVE REAL O GENERA UNA NUEVA SEGURA.
+
+      # El puerto que tu backend Node.js escuchará. Render mapea su puerto interno 10000.
+      # Tu aplicación debe estar configurada para escuchar `process.env.PORT || 3000`.
+      - key: PORT 
+        value: "3000" # Importante que sea un string para la variable de entorno.
+
+  - type: web # El frontend es también un servicio web para servir los archivos estáticos
+    name: frontend # Nombre del servicio de frontend en Render
+    env: static # Render servirá los archivos estáticos generados
+    dockerfilePath: ./frontend/Dockerfile # Ruta a tu Dockerfile para el frontend
+    buildCommand: npm install && npm run build # Instala y construye la aplicación React
+    staticPublishPath: ./frontend/dist # Carpeta donde Vite/React pone los archivos construidos (después de npm run build)
+    plan: free # Plan gratuito
+    envVars:
+      # La URL del backend para que el frontend la conozca.
+      # Render usa nombres de servicio internos, 'backend' aquí se refiere al nombre de tu otro servicio.
+      # El puerto 3000 es el puerto interno del contenedor de backend.
+      - key: VITE_BACKEND_URL 
+        value: http://backend:3000
